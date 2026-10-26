@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import {useUser} from "@clerk/clerk-react";
 import { 
   ReactFlow, 
   MiniMap, 
@@ -48,7 +49,9 @@ const CustomNode = ({ data }) => {
   const isVertical = data.direction === 'vertical';
 
   const borderColor = data.color || '#a855f7';
-
+  const  {user, isLoaded} = useUser();
+  const userId = user?.id;
+  const getUserStorageKey = (key)=>userId?`${key}_${userId}`:null;
   // Mapping corresponding icon for headers
   const getHeaderIcon = () => {
     if (isRoot) return <Workflow className="w-3.5 h-3.5 text-purple-400 animate-pulse" />;
@@ -346,7 +349,8 @@ const Flowchart = () => {
   // Retrieve flow config
   const initialData = useMemo(() => {
     if (location.state?.flowchartData) return location.state.flowchartData;
-    const stored = localStorage.getItem('quickai_flowchart_data');
+    const storageKey = getUserStorageKey("quickai_flowchart_data");
+    const stored = localStorage.getItem(storageKey);
     if (stored) {
       try {
         return JSON.parse(stored);
@@ -359,7 +363,8 @@ const Flowchart = () => {
 
   const userPrompt = useMemo(() => {
     if (location.state?.userPrompt) return location.state.userPrompt;
-    return localStorage.getItem('quickai_flowchart_prompt') || "AI Workflow Generator";
+    const storageKey =  getUserStorageKey("quickai_flowchart_data");
+    return localStorage.getItem(storageKey) || "AI Workflow Generator";
   }, [location.state]);
 
   const [flowchartData, setFlowchartData] = useState(initialData);
@@ -435,9 +440,9 @@ const Flowchart = () => {
     if (targetPhase) {
       if (!targetPhase.children) targetPhase.children = [];
       targetPhase.children.push(newTask);
-      
+      const  storageKey = getUserStorageKey("quickai_flowchart_data");
       setFlowchartData(updatedData);
-      localStorage.setItem('quickai_flowchart_data', JSON.stringify(updatedData));
+      localStorage.setItem(storageKey, JSON.stringify(updatedData));
       toast.success(`Task added to ${targetPhase.label}!`);
       setNewNodeName('');
       setNewNodeDetails('');
@@ -460,7 +465,8 @@ const Flowchart = () => {
 
   // Save flowchart logic
   const handleSave = () => {
-    localStorage.setItem('quickai_flowchart_data', JSON.stringify(flowchartData));
+    const storageKey = getUserStorageKey("quickai_flowchart_data");
+    if(storageKey)localStorage.setItem(storageKey, JSON.stringify(flowchartData));
     toast.success("Workflow successfully saved to workspace!");
   };
 
