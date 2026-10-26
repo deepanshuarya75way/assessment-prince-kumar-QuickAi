@@ -483,7 +483,11 @@ const Flowchart = () => {
   const handleDownloadImage = () => {
     toast.success("Canvas screenshot compiled and downloaded!");
   };
+  if(!isLoaded){
+      return <div> Loading </div>}
 
+if(!user){
+    return <div>Please sign in to continue </div>}
   return (
     <div className="w-full min-h-[calc(100vh-4rem)] bg-black text-white flex flex-col font-outfit relative">
       
